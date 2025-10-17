@@ -1,22 +1,15 @@
 <!DOCTYPE html>
-<html lang="en"> <!-- Langue par défaut de la page mise à jour en anglais -->
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FingerDiceClone - Final Version</title>
+    <title>FingerDiceClone - Multilingual Version</title>
     
     <!--
     ╔═══════════════════════════════════════════════════════════════════════════╗
-    ║                      FINGERDICE CLONE v2.4 (Multilangue)                    ║
-    ║        AJOUT D'UN SÉLECTEUR DE LANGUE ET INTERNATIONALISATION               ║
+    ║                 FINGERDICE CLONE v2.5 (Version Corrigée)                  ║
+    ║        CORRECTION DE L'ERREUR D'AFFICHAGE ET TRADUCTION COMPLÈTE          ║
     ╚═══════════════════════════════════════════════════════════════════════════╝
-    
-    📋 NOUVEAUTÉS DE CETTE VERSION :
-       - Ajout d'un sélecteur de langue (EN, FR, ES, PT) avec des drapeaux.
-       - Les textes de la page d'accueil sont désormais dynamiques et traduits.
-       - Langue par défaut définie sur l'anglais.
-    
-    ═══════════════════════════════════════════════════════════════════════════
     -->
     
     <style>
@@ -46,7 +39,7 @@
            ÉCRAN D'ACCUEIL
            ═══════════════════════════════════════════════════════════════ */
         .home-screen {
-            position: relative; /* Ajouté pour positionner le sélecteur de langue */
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -57,7 +50,6 @@
             padding: 20px;
         }
         
-        /* NOUVEAU: Styles pour le sélecteur de langue */
         .language-selector {
             position: absolute;
             top: 20px;
@@ -86,7 +78,6 @@
             transform: scale(1.1);
             filter: drop-shadow(0 0 4px white);
         }
-        /* Fin des nouveaux styles */
 
         .home-screen h1 {
             font-size: 3rem;
@@ -98,6 +89,7 @@
             font-size: 1.2rem;
             margin-bottom: 2rem;
             opacity: 0.9;
+            max-width: 600px;
         }
 
         .winner-input-container {
@@ -292,31 +284,54 @@
     <script>
         const { useState, useEffect, useRef } = React;
 
-        // NOUVEAU: Objet contenant les traductions
         const translations = {
             en: {
                 title: '👆 FingerDice',
                 subtitle: 'Who will be chosen? Place your fingers to find out!',
                 label: 'Number of people to select:',
-                startButton: 'Start'
+                startButton: 'Start',
+                alert_notEnough: (n) => `You need at least ${n} participant(s)!`,
+                instruction_placeFingers: 'Place your fingers on the screen...',
+                instruction_participants: (n) => `${n} participant${n > 1 ? 's' : ''} detected`,
+                instruction_holdSteady: 'Keep your fingers still!',
+                result_winners: (n) => `🎉 ${n} Winner${n > 1 ? 's' : ''} Selected! 🎉`,
+                restartButton: '🔄 Restart'
             },
             fr: {
                 title: '👆 FingerDice',
                 subtitle: 'Qui sera désigné ? Placez vos doigts pour le découvrir !',
                 label: 'Nombre de personnes à sélectionner :',
-                startButton: 'Commencer'
+                startButton: 'Commencer',
+                alert_notEnough: (n) => `Il faut au moins ${n} participant(s) !`,
+                instruction_placeFingers: 'Posez vos doigts sur l\'écran...',
+                instruction_participants: (n) => `${n} participant${n > 1 ? 's' : ''} détecté${n > 1 ? 's' : ''}`,
+                instruction_holdSteady: 'Gardez vos doigts immobiles !',
+                result_winners: (n) => `🎉 ${n} Gagnant${n > 1 ? 's' : ''} Sélectionné${n > 1 ? 's' : ''} ! 🎉`,
+                restartButton: '🔄 Recommencer'
             },
             es: {
                 title: '👆 FingerDice',
                 subtitle: '¿Quién será elegido? ¡Coloca tus dedos para descubrirlo!',
                 label: 'Número de personas a seleccionar:',
-                startButton: 'Empezar'
+                startButton: 'Empezar',
+                alert_notEnough: (n) => `¡Se necesitan al menos ${n} participante(s)!`,
+                instruction_placeFingers: 'Coloca tus dedos en la pantalla...',
+                instruction_participants: (n) => `${n} participante${n > 1 ? 's' : ''} detectado${n > 1 ? 's' : ''}`,
+                instruction_holdSteady: '¡Mantén los dedos quietos!',
+                result_winners: (n) => `🎉 ¡${n} Ganador${n > 1 ? 'es' : ''} Seleccionado${n > 1 ? 's' : ''}! 🎉`,
+                restartButton: '🔄 Reiniciar'
             },
             pt: {
                 title: '👆 FingerDice',
                 subtitle: 'Quem será escolhido? Coloque seus dedos para descobrir!',
                 label: 'Número de pessoas a selecionar:',
-                startButton: 'Começar'
+                startButton: 'Começar',
+                alert_notEnough: (n) => `É necessário pelo menos ${n} participante(s)!`,
+                instruction_placeFingers: 'Coloque os dedos na tela...',
+                instruction_participants: (n) => `${n} participante${n > 1 ? 's' : ''} detectado${n > 1 ? 's' : ''}`,
+                instruction_holdSteady: 'Mantenha os dedos parados!',
+                result_winners: (n) => `🎉 ${n} Vencedor${n > 1 ? 'es' : ''} Selecionado${n > 1 ? 's' : ''}! 🎉`,
+                restartButton: '🔄 Recomeçar'
             }
         };
         
@@ -327,11 +342,12 @@
             const [winners, setWinners] = useState([]);
             const [numWinners, setNumWinners] = useState(1);
             const [countdown, setCountdown] = useState(5);
-            const [language, setLanguage] = useState('en'); // NOUVEAU: État pour la langue, 'en' par défaut
+            const [language, setLanguage] = useState('en');
             
             const touchAreaRef = useRef(null);
             const countdownTimerRef = useRef(null);
             const touchesRef = useRef(touches);
+            const currentText = translations[language];
 
             useEffect(() => {
                 touchesRef.current = touches;
@@ -356,20 +372,14 @@
                 const handleTouchStart = (e) => {
                     e.preventDefault();
                     handleTouchesChange(e.touches);
-                    if (!countdownTimerRef.current) {
-                        startCountdown();
-                    }
+                    if (!countdownTimerRef.current) startCountdown();
                 };
                 const handleTouchMove = (e) => { e.preventDefault(); handleTouchesChange(e.touches); };
                 const handleTouchEnd = (e) => { e.preventDefault(); handleTouchesChange(e.touches); };
-                
                 const handleMouseDown = (e) => {
                     const newTouch = { id: Date.now(), x: e.clientX, y: e.clientY, number: touchesRef.current.length + 1 };
-                    const newTouches = [...touchesRef.current, newTouch];
-                    setTouches(newTouches);
-                    if (!countdownTimerRef.current) {
-                        startCountdown();
-                    }
+                    setTouches([...touchesRef.current, newTouch]);
+                    if (!countdownTimerRef.current) startCountdown();
                 };
 
                 area.addEventListener('touchstart', handleTouchStart);
@@ -407,7 +417,7 @@
                             selectWinners(finalTouches);
                             setScreen('result');
                         } else {
-                            alert(`You need at least ${numWinners} participant(s)!`);
+                            alert(currentText.alert_notEnough(numWinners));
                             restart();
                         }
                     }
@@ -417,8 +427,7 @@
             const selectWinners = (finalTouches) => {
                 const numberOfWinnersToSelect = Math.min(numWinners, finalTouches.length);
                 const shuffled = [...finalTouches].sort(() => 0.5 - Math.random());
-                const selectedWinners = shuffled.slice(0, numberOfWinnersToSelect);
-                setWinners(selectedWinners);
+                setWinners(shuffled.slice(0, numberOfWinnersToSelect));
             };
 
             const restart = () => {
@@ -436,59 +445,45 @@
             const backToHome = () => {
                 restart();
                 setScreen('home');
-            }
+            };
 
             useEffect(() => {
                 return () => {
                     if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
                 };
             }, []);
-
-            if (screen === 'home') {
-                const currentText = translations[language]; // MODIFIÉ: Sélectionne le bon objet de traduction
-                
+            
+            const renderHomeScreen = () => {
                 return React.createElement('div', { className: 'home-screen' },
-                    // NOUVEAU: Sélecteur de langue
                     React.createElement('div', { className: 'language-selector' },
-                        React.createElement('span', { className: `lang-flag ${language === 'en' ? 'selected' : ''}`, onClick: () => setLanguage('en') }, '🇬🇧'),
-                        React.createElement('span', { className: `lang-flag ${language === 'fr' ? 'selected' : ''}`, onClick: () => setLanguage('fr') }, '🇫🇷'),
-                        React.createElement('span', { className: `lang-flag ${language === 'es' ? 'selected' : ''}`, onClick: () => setLanguage('es') }, '🇪🇸'),
-                        React.createElement('span', { className: `lang-flag ${language === 'pt' ? 'selected' : ''}`, onClick: () => setLanguage('pt') }, '🇵🇹')
+                        React.createElement('span', { className: 'lang-flag' + (language === 'en' ? ' selected' : ''), onClick: () => setLanguage('en') }, '🇬🇧'),
+                        React.createElement('span', { className: 'lang-flag' + (language === 'fr' ? ' selected' : ''), onClick: () => setLanguage('fr') }, '🇫🇷'),
+                        React.createElement('span', { className: 'lang-flag' + (language === 'es' ? ' selected' : ''), onClick: () => setLanguage('es') }, '🇪🇸'),
+                        React.createElement('span', { className: 'lang-flag' + (language === 'pt' ? ' selected' : ''), onClick: () => setLanguage('pt') }, '🇵🇹')
                     ),
-
-                    // MODIFIÉ: Utilisation des textes dynamiques
                     React.createElement('h1', null, currentText.title),
                     React.createElement('p', null, currentText.subtitle),
-                    
                     React.createElement('div', { className: 'winner-input-container' },
                         React.createElement('label', null, currentText.label),
-                        
                         React.createElement('div', { className: 'winner-selector' },
-                            React.createElement('button', {
-                                className: 'selector-btn',
-                                onClick: () => setNumWinners(prev => Math.max(1, prev - 1)),
-                            }, '−'),
+                            React.createElement('button', { className: 'selector-btn', onClick: () => setNumWinners(prev => Math.max(1, prev - 1)) }, '−'),
                             React.createElement('span', { className: 'selector-display' }, numWinners),
-                            React.createElement('button', {
-                                className: 'selector-btn',
-                                onClick: () => setNumWinners(prev => prev + 1)
-                            }, '+')
+                            React.createElement('button', { className: 'selector-btn', onClick: () => setNumWinners(prev => prev + 1) }, '+')
                         )
                     ),
-                    
                     React.createElement('button', { className: 'btn-primary', onClick: () => setScreen('game') }, currentText.startButton)
                 );
-            }
+            };
 
-            if (screen === 'game' || screen === 'countdown') {
+            const renderGameScreen = () => {
                 const instructionText = touches.length === 0 
-                    ? 'Place your fingers on the screen...'
-                    : `${touches.length} participant${touches.length > 1 ? 's' : ''} detected`;
+                    ? currentText.instruction_placeFingers
+                    : currentText.instruction_participants(touches.length);
 
                 return React.createElement('div', { className: 'game-screen' },
                     screen === 'countdown' && React.createElement('div', { className: 'countdown-display' }, countdown),
                     React.createElement('div', { className: 'instructions' },
-                        screen === 'countdown' ? 'Keep your fingers still!' : instructionText
+                        screen === 'countdown' ? currentText.instruction_holdSteady : instructionText
                     ),
                     React.createElement('div', { className: 'touch-area', ref: touchAreaRef },
                         touches.map((touch) =>
@@ -500,11 +495,11 @@
                         )
                     )
                 );
-            }
-
-            if (screen === 'result') {
+            };
+            
+            const renderResultScreen = () => {
                 return React.createElement('div', { className: 'game-screen result-screen' },
-                    React.createElement('div', { className: 'instructions' }, `🎉 ${winners.length} Winner${winners.length > 1 ? 's' : ''} Selected! 🎉`),
+                    React.createElement('div', { className: 'instructions' }, currentText.result_winners(winners.length)),
                     React.createElement('div', { className: 'touch-area' },
                         frozenTouches.map((touch) => {
                             const isWinner = winners.some(winner => winner.id === touch.id);
@@ -515,10 +510,17 @@
                             }, touch.number);
                         })
                     ),
-                    React.createElement('button', { className: 'select-btn', onClick: backToHome }, '🔄 Restart')
+                    React.createElement('button', { className: 'select-btn', onClick: backToHome }, currentText.restartButton)
                 );
+            };
+
+            switch (screen) {
+                case 'home': return renderHomeScreen();
+                case 'game':
+                case 'countdown': return renderGameScreen();
+                case 'result': return renderResultScreen();
+                default: return null;
             }
-            return null;
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
