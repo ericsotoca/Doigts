@@ -7,33 +7,34 @@
     
     <!--
     ╔═══════════════════════════════════════════════════════════════════════════╗
-    ║                         FINGERDICE CLONE v2.1 (Corrigé)                   ║
-    ║        GARANTIT LA DÉTECTION DE TOUS LES DOIGTS À LA FIN DU COMPTEUR        ║
+    ║                         FINGERDICE CLONE v2.2 (UI Améliorée)                ║
+    ║        SÉLECTEUR DE PARTICIPANTS AMÉLIORÉ POUR LES ÉCRANS TACTILES          ║
     ╚═══════════════════════════════════════════════════════════════════════════╝
     
-    📋 CHANGEMENTS CLÉS :
-       - Correction d'un bug où tous les doigts n'étaient pas détectés à la fin du décompte.
-       - Utilisation de `useRef` pour une capture précise et fiable des participants.
-       - Logique du timer améliorée pour plus de robustesse.
+    📋 NOUVEAUTÉ DE CETTE VERSION :
+       - Remplacement du champ de saisie numérique par des boutons "+" et "-"
+         plus grands et plus faciles à utiliser sur les appareils tactiles.
+       - L'expérience utilisateur sur l'écran d'accueil est maintenant plus fluide.
     
     ═══════════════════════════════════════════════════════════════════════════
     -->
     
     <style>
         /* ═══════════════════════════════════════════════════════════════
-           STYLES GLOBAUX - Reset et Configuration de Base
+           STYLES GLOBAUX
            ═══════════════════════════════════════════════════════════════ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Supprime le flash bleu sur mobile */
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            touch-action: none; /* Empêche le zoom et le scroll sur mobile */
+            touch-action: none;
         }
         
         #root {
@@ -42,7 +43,7 @@
         }
         
         /* ═══════════════════════════════════════════════════════════════
-           ÉCRAN D'ACCUEIL - Page de démarrage
+           ÉCRAN D'ACCUEIL
            ═══════════════════════════════════════════════════════════════ */
         .home-screen {
             display: flex;
@@ -68,28 +69,53 @@
         }
 
         .winner-input-container {
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
         
         .winner-input-container label {
             font-size: 1.2rem;
             font-weight: bold;
         }
+
+        /* NOUVEAU : Styles pour le sélecteur avec boutons + et - */
+        .winner-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
         
-        .winner-input-container input {
-            width: 80px;
-            padding: 10px;
-            font-size: 1.5rem;
-            text-align: center;
-            border-radius: 8px;
+        .selector-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            min-width: 80px; /* Assure un espacement constant */
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .selector-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             border: 2px solid white;
             background-color: rgba(255, 255, 255, 0.2);
             color: white;
+            font-size: 2.5rem;
             font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1; /* Centre le + et - verticalement */
+            transition: background-color 0.2s ease;
+        }
+
+        .selector-btn:active {
+             background-color: rgba(255, 255, 255, 0.4);
         }
         
         .btn-primary {
@@ -247,10 +273,8 @@
             
             const touchAreaRef = useRef(null);
             const countdownTimerRef = useRef(null);
-            // CORRECTION : useRef pour suivre l'état des 'touches' en temps réel
             const touchesRef = useRef(touches);
 
-            // CORRECTION : Mettre à jour la ref à chaque changement de 'touches'
             useEffect(() => {
                 touchesRef.current = touches;
             }, [touches]);
@@ -274,7 +298,6 @@
                 const handleTouchStart = (e) => {
                     e.preventDefault();
                     handleTouchesChange(e.touches);
-                    // Démarrer le décompte s'il n'est pas déjà lancé
                     if (!countdownTimerRef.current) {
                         startCountdown();
                     }
@@ -305,7 +328,7 @@
             }, [screen]);
 
             const startCountdown = () => {
-                if (countdownTimerRef.current) return; // Sécurité pour éviter les doublons
+                if (countdownTimerRef.current) return;
 
                 setScreen('countdown');
                 let count = 5;
@@ -319,7 +342,6 @@
                         clearInterval(countdownTimerRef.current);
                         countdownTimerRef.current = null;
                         
-                        // CORRECTION : Utiliser la ref pour obtenir la liste la plus à jour
                         const finalTouches = touchesRef.current;
 
                         if (finalTouches.length > 0) {
@@ -362,16 +384,25 @@
                 return React.createElement('div', { className: 'home-screen' },
                     React.createElement('h1', null, '👆 FingerDice'),
                     React.createElement('p', null, 'Qui sera désigné ? Placez vos doigts pour le découvrir !'),
+                    
                     React.createElement('div', { className: 'winner-input-container' },
-                        React.createElement('label', { htmlFor: 'num-winners' }, 'Nombre de personnes à sélectionner :'),
-                        React.createElement('input', {
-                            type: 'number',
-                            id: 'num-winners',
-                            value: numWinners,
-                            min: 1,
-                            onChange: (e) => setNumWinners(Math.max(1, parseInt(e.target.value, 10) || 1))
-                        })
+                        React.createElement('label', null, 'Nombre de personnes à sélectionner :'),
+                        
+                        // CORRIGÉ : Remplacement de l'input par des boutons
+                        React.createElement('div', { className: 'winner-selector' },
+                            React.createElement('button', {
+                                className: 'selector-btn',
+                                onClick: () => setNumWinners(prev => Math.max(1, prev - 1)), // Ne descend pas en dessous de 1
+                                disabled: numWinners <= 1
+                            }, '−'),
+                            React.createElement('span', { className: 'selector-display' }, numWinners),
+                            React.createElement('button', {
+                                className: 'selector-btn',
+                                onClick: () => setNumWinners(prev => prev + 1)
+                            }, '+')
+                        )
                     ),
+                    
                     React.createElement('button', { className: 'btn-primary', onClick: () => setScreen('game') }, 'Commencer')
                 );
             }
