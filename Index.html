@@ -7,24 +7,14 @@
     
     <!--
     ╔═══════════════════════════════════════════════════════════════════════════╗
-    ║                         FINGERDICE CLONE v2.0                             ║
-    ║        MODIFIÉ POUR SÉLECTIONNER UN NOMBRE DÉFINI DE PROTAGONISTES         ║
+    ║                         FINGERDICE CLONE v2.1 (Corrigé)                   ║
+    ║        GARANTIT LA DÉTECTION DE TOUS LES DOIGTS À LA FIN DU COMPTEUR        ║
     ╚═══════════════════════════════════════════════════════════════════════════╝
     
-    📋 COMMENT UTILISER CETTE APPLICATION :
-    
-    1. Sur l'écran d'accueil, choisissez combien de personnes doivent être sélectionnées.
-    2. Appuyez sur "Commencer".
-    3. Tous les participants placent un doigt sur l'écran.
-    4. Le décompte se lance automatiquement.
-    5. L'application mettra en évidence le nombre de gagnants que vous avez défini.
-    
-    ✅ NOUVEAUTÉS :
-       - Champ pour choisir le nombre de gagnants.
-       - Sélection aléatoire de plusieurs protagonistes.
-       - Affichage multiple des gagnants.
-    
-    🎨 TECHNOLOGIES : HTML5 + CSS3 + React 18 (via CDN)
+    📋 CHANGEMENTS CLÉS :
+       - Correction d'un bug où tous les doigts n'étaient pas détectés à la fin du décompte.
+       - Utilisation de `useRef` pour une capture précise et fiable des participants.
+       - Logique du timer améliorée pour plus de robustesse.
     
     ═══════════════════════════════════════════════════════════════════════════
     -->
@@ -77,7 +67,6 @@
             opacity: 0.9;
         }
 
-        /* Styles pour le champ de sélection du nombre de gagnants */
         .winner-input-container {
             margin-bottom: 2rem;
             display: flex;
@@ -121,12 +110,8 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
         
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-        
         /* ═══════════════════════════════════════════════════════════════
-           ÉCRAN DE JEU - Zone de détection tactile
+           ÉCRAN DE JEU
            ═══════════════════════════════════════════════════════════════ */
         .game-screen {
             position: relative;
@@ -149,9 +134,6 @@
             padding: 0 20px;
         }
         
-        /* ═══════════════════════════════════════════════════════════════
-           AFFICHAGE DU DÉCOMPTE - Grand chiffre au centre
-           ═══════════════════════════════════════════════════════════════ */
         .countdown-display {
             position: absolute;
             top: 50%;
@@ -166,14 +148,8 @@
         }
         
         @keyframes countdownPulse {
-            0%, 100% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.1);
-                opacity: 0.8;
-            }
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
         }
         
         .touch-area {
@@ -182,9 +158,6 @@
             position: relative;
         }
         
-        /* ═══════════════════════════════════════════════════════════════
-           INDICATEURS DE DOIGTS - Cercles colorés pour chaque toucher
-           ═══════════════════════════════════════════════════════════════ */
         .finger {
             position: absolute;
             width: 120px;
@@ -200,18 +173,14 @@
             pointer-events: none;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            background: #FF6B6B; /* Rouge par défaut */
+            background: #FF6B6B;
         }
         
-        /* Doigt perdant - reste rouge */
         .finger.loser {
             background: #FF6B6B !important;
             opacity: 0.6;
         }
         
-        /* ═══════════════════════════════════════════════════════════════
-           ANIMATION DU GAGNANT - Effet pulsation et couleur verte
-           ═══════════════════════════════════════════════════════════════ */
         .finger.winner {
             animation: winnerPulse 1s ease-in-out infinite;
             width: 180px;
@@ -219,21 +188,14 @@
             font-size: 4rem;
             z-index: 100;
             box-shadow: 0 0 40px rgba(76, 175, 80, 0.8);
-            background: #4CAF50 !important; /* Vert pour le gagnant */
+            background: #4CAF50 !important;
         }
         
         @keyframes winnerPulse {
-            0%, 100% {
-                transform: translate(-50%, -50%) scale(1);
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.2);
-            }
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
         }
         
-        /* ═══════════════════════════════════════════════════════════════
-           BOUTON DE SÉLECTION - Bouton pour lancer le tirage au sort
-           ═══════════════════════════════════════════════════════════════ */
         .select-btn {
             position: fixed;
             bottom: 40px;
@@ -257,71 +219,49 @@
             box-shadow: 0 6px 25px rgba(0,0,0,0.4);
         }
         
-        /* ═══════════════════════════════════════════════════════════════
-           RESPONSIVE - Adaptation mobile
-           ═══════════════════════════════════════════════════════════════ */
         @media (max-width: 768px) {
-            .home-screen h1 {
-                font-size: 2.5rem;
-            }
-            
-            .instructions {
-                font-size: 1.3rem;
-            }
-            
-            .countdown-display {
-                font-size: 10rem;
-            }
-            
-            .finger {
-                width: 100px;
-                height: 100px;
-                font-size: 2rem;
-            }
-            
-            .finger.winner {
-                width: 150px;
-                height: 150px;
-                font-size: 3rem;
-            }
+            .home-screen h1 { font-size: 2.5rem; }
+            .instructions { font-size: 1.3rem; }
+            .countdown-display { font-size: 10rem; }
+            .finger { width: 100px; height: 100px; font-size: 2rem; }
+            .finger.winner { width: 150px; height: 150px; font-size: 3rem; }
         }
     </style>
 </head>
 <body>
-    <!-- Conteneur principal pour React -->
     <div id="root"></div>
     
-    <!-- Chargement de React et ReactDOM depuis CDN -->
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     
     <script>
-        /* ═══════════════════════════════════════════════════════════════
-           COMPOSANT PRINCIPAL REACT - FingerDiceClone
-           ═══════════════════════════════════════════════════════════════ */
         const { useState, useEffect, useRef } = React;
         
         function FingerDiceClone() {
-            // États de l'application
-            const [screen, setScreen] = useState('home'); // 'home' | 'game' | 'countdown' | 'result'
-            const [touches, setTouches] = useState([]); // Liste des doigts actifs
-            const [frozenTouches, setFrozenTouches] = useState([]); // Doigts figés pour le résultat
-            const [winners, setWinners] = useState([]); // Doigts gagnants (maintenant un tableau)
-            const [numWinners, setNumWinners] = useState(1); // Nombre de gagnants à sélectionner
-            const [countdown, setCountdown] = useState(5); // Décompte (5, 4, 3, 2, 1)
-            const touchAreaRef = useRef(null); // Référence à la zone tactile
-            const countdownTimerRef = useRef(null); // Timer du décompte
+            const [screen, setScreen] = useState('home');
+            const [touches, setTouches] = useState([]);
+            const [frozenTouches, setFrozenTouches] = useState([]);
+            const [winners, setWinners] = useState([]);
+            const [numWinners, setNumWinners] = useState(1);
+            const [countdown, setCountdown] = useState(5);
             
-            /* ═══════════════════════════════════════════════════════════
-               GESTIONNAIRE D'ÉVÉNEMENTS TACTILES
-               Gère l'ajout, le déplacement et le retrait des doigts
-               ═══════════════════════════════════════════════════════════ */
+            const touchAreaRef = useRef(null);
+            const countdownTimerRef = useRef(null);
+            // CORRECTION : useRef pour suivre l'état des 'touches' en temps réel
+            const touchesRef = useRef(touches);
+
+            // CORRECTION : Mettre à jour la ref à chaque changement de 'touches'
             useEffect(() => {
-                if (screen !== 'game' || !touchAreaRef.current) return;
-                
+                touchesRef.current = touches;
+            }, [touches]);
+
+            useEffect(() => {
+                if (screen !== 'game' && screen !== 'countdown') return;
+
                 const area = touchAreaRef.current;
-                
-                const updateTouches = (touchList) => {
+                if (!area) return;
+
+                const handleTouchesChange = (touchList) => {
                     const newTouches = Array.from(touchList).map((touch, idx) => ({
                         id: touch.identifier,
                         x: touch.clientX,
@@ -329,162 +269,99 @@
                         number: idx + 1
                     }));
                     setTouches(newTouches);
-                    
-                    // Démarrer le décompte dès le premier doigt
-                    if (newTouches.length > 0 && !countdownTimerRef.current && screen === 'game') {
-                        // On passe les touches actuelles à la fonction de décompte
-                        startCountdown(newTouches);
-                    }
                 };
-                
+
                 const handleTouchStart = (e) => {
                     e.preventDefault();
-                    updateTouches(e.touches);
-                };
-                
-                const handleTouchMove = (e) => {
-                    e.preventDefault();
-                    updateTouches(e.touches);
-                };
-                
-                const handleTouchEnd = (e) => {
-                    e.preventDefault();
-                    updateTouches(e.touches);
-                };
-                
-                // FALLBACK POUR DESKTOP : Simulation avec clics de souris
-                const handleMouseDown = (e) => {
-                    const newTouch = {
-                        id: Date.now(),
-                        x: e.clientX,
-                        y: e.clientY,
-                        number: touches.length + 1
-                    };
-                    const newTouches = [...touches, newTouch];
-                    setTouches(newTouches);
-                    
-                    if (newTouches.length === 1 && !countdownTimerRef.current) {
-                        startCountdown(newTouches);
+                    handleTouchesChange(e.touches);
+                    // Démarrer le décompte s'il n'est pas déjà lancé
+                    if (!countdownTimerRef.current) {
+                        startCountdown();
                     }
                 };
+                const handleTouchMove = (e) => { e.preventDefault(); handleTouchesChange(e.touches); };
+                const handleTouchEnd = (e) => { e.preventDefault(); handleTouchesChange(e.touches); };
                 
+                const handleMouseDown = (e) => {
+                    const newTouch = { id: Date.now(), x: e.clientX, y: e.clientY, number: touches.length + 1 };
+                    const newTouches = [...touches, newTouch];
+                    setTouches(newTouches);
+                    if (!countdownTimerRef.current) {
+                        startCountdown();
+                    }
+                };
+
                 area.addEventListener('touchstart', handleTouchStart);
                 area.addEventListener('touchmove', handleTouchMove);
                 area.addEventListener('touchend', handleTouchEnd);
                 area.addEventListener('mousedown', handleMouseDown);
-                
+
                 return () => {
                     area.removeEventListener('touchstart', handleTouchStart);
                     area.removeEventListener('touchmove', handleTouchMove);
                     area.removeEventListener('touchend', handleTouchEnd);
                     area.removeEventListener('mousedown', handleMouseDown);
                 };
-            }, [screen, touches]); // Dépend de `touches` pour le fallback desktop
-            
-            /* ═══════════════════════════════════════════════════════════
-               DÉCOMPTE 5-4-3-2-1 (dès le premier doigt posé)
-               Compte à rebours avant la sélection
-               ═══════════════════════════════════════════════════════════ */
-            const startCountdown = (initialTouches) => {
-                // S'assurer qu'on ne démarre pas plusieurs décomptes
-                if (countdownTimerRef.current) return;
+            }, [screen]);
+
+            const startCountdown = () => {
+                if (countdownTimerRef.current) return; // Sécurité pour éviter les doublons
 
                 setScreen('countdown');
-                let lastKnownTouches = initialTouches;
-                
                 let count = 5;
                 setCountdown(count);
 
                 countdownTimerRef.current = setInterval(() => {
-                    // Mettre à jour la liste des doigts à chaque seconde
-                    setTouches(currentTouches => {
-                        lastKnownTouches = currentTouches;
-                        return currentTouches;
-                    });
-                    
                     count--;
                     if (count > 0) {
                         setCountdown(count);
                     } else {
-                        // Fin du décompte
                         clearInterval(countdownTimerRef.current);
                         countdownTimerRef.current = null;
                         
-                        if (lastKnownTouches.length > 0) {
-                            // Figer les positions
-                            setFrozenTouches(lastKnownTouches);
-                            
-                            // Sélectionner les gagnants
-                            selectWinners(lastKnownTouches);
-                            
-                            // Passer à l'écran de résultat
+                        // CORRECTION : Utiliser la ref pour obtenir la liste la plus à jour
+                        const finalTouches = touchesRef.current;
+
+                        if (finalTouches.length > 0) {
+                            setFrozenTouches(finalTouches);
+                            selectWinners(finalTouches);
                             setScreen('result');
                         } else {
-                            // S'il n'y a plus de doigts, on recommence
                             restart();
                         }
                     }
                 }, 1000);
             };
-            
-            /* ═══════════════════════════════════════════════════════════
-               FONCTION DE SÉLECTION ALÉATOIRE (MODIFIÉE)
-               Choisit un ou plusieurs gagnants parmi les doigts figés
-               ═══════════════════════════════════════════════════════════ */
+
             const selectWinners = (finalTouches) => {
-                if (finalTouches.length === 0) return;
-                
-                // On s'assure de ne pas vouloir sélectionner plus de gagnants qu'il n'y a de participants
                 const numberOfWinnersToSelect = Math.min(numWinners, finalTouches.length);
-                
-                // On mélange le tableau des participants (algorithme de Fisher-Yates)
-                const shuffled = [...finalTouches];
-                for (let i = shuffled.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-                }
-                
-                // On prend les N premiers éléments du tableau mélangé
+                const shuffled = [...finalTouches].sort(() => 0.5 - Math.random());
                 const selectedWinners = shuffled.slice(0, numberOfWinnersToSelect);
-                
                 setWinners(selectedWinners);
             };
-            
-            /* ═══════════════════════════════════════════════════════════
-               FONCTION DE RÉINITIALISATION
-               Retourne à l'écran d'accueil
-               ═══════════════════════════════════════════════════════════ */
+
             const restart = () => {
                 if (countdownTimerRef.current) {
                     clearInterval(countdownTimerRef.current);
                     countdownTimerRef.current = null;
                 }
-                
                 setTouches([]);
                 setFrozenTouches([]);
                 setWinners([]);
                 setCountdown(5);
                 setScreen('home');
             };
-            
-            // Nettoyage des timers au démontage
+
             useEffect(() => {
                 return () => {
                     if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
                 };
             }, []);
-            
-            /* ═══════════════════════════════════════════════════════════
-               RENDU CONDITIONNEL - Affichage des différents écrans
-               ═══════════════════════════════════════════════════════════ */
-            
-            // ÉCRAN D'ACCUEIL
+
             if (screen === 'home') {
                 return React.createElement('div', { className: 'home-screen' },
                     React.createElement('h1', null, '👆 FingerDice'),
                     React.createElement('p', null, 'Qui sera désigné ? Placez vos doigts pour le découvrir !'),
-                    
-                    // NOUVEAU : Champ pour choisir le nombre de gagnants
                     React.createElement('div', { className: 'winner-input-container' },
                         React.createElement('label', { htmlFor: 'num-winners' }, 'Nombre de personnes à sélectionner :'),
                         React.createElement('input', {
@@ -495,80 +372,47 @@
                             onChange: (e) => setNumWinners(Math.max(1, parseInt(e.target.value, 10) || 1))
                         })
                     ),
-                    
-                    React.createElement('button', { 
-                        className: 'btn-primary',
-                        onClick: () => setScreen('game')
-                    }, 'Commencer')
+                    React.createElement('button', { className: 'btn-primary', onClick: () => setScreen('game') }, 'Commencer')
                 );
             }
-            
-            // ÉCRAN DE JEU & DÉCOMPTE (fusionnés pour une transition fluide)
-            if (screen === 'game' || screen === 'countdown') {
-                const currentTouches = screen === 'countdown' ? frozenTouches : touches;
 
+            if (screen === 'game' || screen === 'countdown') {
                 return React.createElement('div', { className: 'game-screen' },
-                    // Afficher le décompte au centre si en cours
                     screen === 'countdown' && React.createElement('div', { className: 'countdown-display' }, countdown),
-                    
                     React.createElement('div', { className: 'instructions' },
-                        touches.length === 0 
-                            ? 'Posez vos doigts sur l\'écran !'
-                            : 'Gardez vos doigts immobiles !'
+                        touches.length === 0 ? 'Posez vos doigts sur l\'écran !' : 'Gardez vos doigts immobiles !'
                     ),
-                    React.createElement('div', { 
-                        className: 'touch-area',
-                        ref: touchAreaRef
-                    },
-                        // Affichage des cercles pour chaque doigt
+                    React.createElement('div', { className: 'touch-area', ref: touchAreaRef },
                         touches.map((touch) =>
                             React.createElement('div', {
                                 key: touch.id,
                                 className: 'finger',
-                                style: {
-                                    left: `${touch.x}px`,
-                                    top: `${touch.y}px`
-                                }
+                                style: { left: `${touch.x}px`, top: `${touch.y}px` }
                             }, touch.number)
                         )
                     )
                 );
             }
-            
-            // ÉCRAN DE RÉSULTAT
+
             if (screen === 'result') {
                 return React.createElement('div', { className: 'game-screen result-screen' },
-                    React.createElement('div', { className: 'instructions' }, `🎉 ${winners.length} Protagoniste${winners.length > 1 ? 's' : ''} Sélectionné${winners.length > 1 ? 's' : ''} ! 🎉`),
+                    React.createElement('div', { className: 'instructions' }, `🎉 ${winners.length} Gagnant${winners.length > 1 ? 's' : ''} Sélectionné${winners.length > 1 ? 's' : ''} ! 🎉`),
                     React.createElement('div', { className: 'touch-area' },
-                        // Affichage des doigts figés avec gagnants/perdants
                         frozenTouches.map((touch) => {
-                            // Vérifier si le doigt actuel fait partie du tableau des gagnants
                             const isWinner = winners.some(winner => winner.id === touch.id);
-                            
                             return React.createElement('div', {
                                 key: `result-${touch.id}`,
                                 className: `finger ${isWinner ? 'winner' : 'loser'}`,
-                                style: {
-                                    left: `${touch.x}px`,
-                                    top: `${touch.y}px`,
-                                    position: 'absolute'
-                                }
+                                style: { left: `${touch.x}px`, top: `${touch.y}px`, position: 'absolute' }
                             }, touch.number);
                         })
                     ),
-                    React.createElement('button', {
-                        className: 'select-btn',
-                        onClick: restart
-                    }, '🔄 Recommencer')
+                    React.createElement('button', { className: 'select-btn', onClick: restart }, '🔄 Recommencer')
                 );
             }
-            
             return null;
         }
-        
-        /* ═══════════════════════════════════════════════════════════════
-           MONTAGE DE L'APPLICATION REACT
-           ═══════════════════════════════════════════════════════════════ */
+
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(React.createElement(FingerDiceClone));
     </script>
