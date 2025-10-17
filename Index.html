@@ -3,19 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FingerDiceClone - Multilingual Version</title>
-    
-    <!--
-    ╔═══════════════════════════════════════════════════════════════════════════╗
-    ║                 FINGERDICE CLONE v2.5 (Version Corrigée)                  ║
-    ║        CORRECTION DE L'ERREUR D'AFFICHAGE ET TRADUCTION COMPLÈTE          ║
-    ╚═══════════════════════════════════════════════════════════════════════════╝
-    -->
+    <title>FingerDice - Multilingual Game</title>
     
     <style>
-        /* ═══════════════════════════════════════════════════════════════
-           STYLES GLOBAUX
-           ═══════════════════════════════════════════════════════════════ */
         * {
             margin: 0;
             padding: 0;
@@ -35,9 +25,7 @@
             height: 100vh;
         }
         
-        /* ═══════════════════════════════════════════════════════════════
-           ÉCRAN D'ACCUEIL
-           ═══════════════════════════════════════════════════════════════ */
+        /* HOME SCREEN */
         .home-screen {
             position: relative;
             display: flex;
@@ -138,7 +126,7 @@
         }
 
         .selector-btn:active {
-             background-color: rgba(255, 255, 255, 0.4);
+            background-color: rgba(255, 255, 255, 0.4);
         }
         
         .btn-primary {
@@ -159,9 +147,7 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
         
-        /* ═══════════════════════════════════════════════════════════════
-           ÉCRAN DE JEU
-           ═══════════════════════════════════════════════════════════════ */
+        /* GAME SCREEN */
         .game-screen {
             position: relative;
             width: 100%;
@@ -263,6 +249,33 @@
             z-index: 20;
             transition: all 0.3s ease;
         }
+
+        .select-btn:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+        }
+        
+        .warning-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            color: #f5576c;
+            padding: 2rem 3rem;
+            border-radius: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
         
         @media (max-width: 768px) {
             .home-screen h1 { font-size: 2.5rem; }
@@ -278,7 +291,7 @@
 <body>
     <div id="root"></div>
     
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     
     <script>
@@ -343,6 +356,7 @@
             const [numWinners, setNumWinners] = useState(1);
             const [countdown, setCountdown] = useState(5);
             const [language, setLanguage] = useState('en');
+            const [showWarning, setShowWarning] = useState(false);
             
             const touchAreaRef = useRef(null);
             const countdownTimerRef = useRef(null);
@@ -417,8 +431,11 @@
                             selectWinners(finalTouches);
                             setScreen('result');
                         } else {
-                            alert(currentText.alert_notEnough(numWinners));
-                            restart();
+                            setShowWarning(true);
+                            setTimeout(() => {
+                                setShowWarning(false);
+                                restart();
+                            }, 2000);
                         }
                     }
                 }, 1000);
@@ -482,6 +499,7 @@
 
                 return React.createElement('div', { className: 'game-screen' },
                     screen === 'countdown' && React.createElement('div', { className: 'countdown-display' }, countdown),
+                    showWarning && React.createElement('div', { className: 'warning-message' }, currentText.alert_notEnough(numWinners)),
                     React.createElement('div', { className: 'instructions' },
                         screen === 'countdown' ? currentText.instruction_holdSteady : instructionText
                     ),
