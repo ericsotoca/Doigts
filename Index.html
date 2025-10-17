@@ -1,22 +1,20 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en"> <!-- Langue par défaut de la page mise à jour en anglais -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FingerDiceClone - Version Finale</title>
+    <title>FingerDiceClone - Final Version</title>
     
     <!--
     ╔═══════════════════════════════════════════════════════════════════════════╗
-    ║                      FINGERDICE CLONE v2.3 (Version Finale)                 ║
-    ║        CORRECTIONS FINALES ET AMÉLIORATION DE L'EXPÉRIENCE UTILISATEUR      ║
+    ║                      FINGERDICE CLONE v2.4 (Multilangue)                    ║
+    ║        AJOUT D'UN SÉLECTEUR DE LANGUE ET INTERNATIONALISATION               ║
     ╚═══════════════════════════════════════════════════════════════════════════╝
     
     📋 NOUVEAUTÉS DE CETTE VERSION :
-       - Correction définitive du sélecteur de gagnants avec des boutons "+" et "-".
-       - Le code n'a aucune limite sur le nombre de doigts, il utilise le maximum
-         supporté par l'appareil.
-       - AMÉLIORATION : Ajout d'un compteur en direct qui affiche le nombre de
-         participants détectés pour un meilleur feedback.
+       - Ajout d'un sélecteur de langue (EN, FR, ES, PT) avec des drapeaux.
+       - Les textes de la page d'accueil sont désormais dynamiques et traduits.
+       - Langue par défaut définie sur l'anglais.
     
     ═══════════════════════════════════════════════════════════════════════════
     -->
@@ -48,6 +46,7 @@
            ÉCRAN D'ACCUEIL
            ═══════════════════════════════════════════════════════════════ */
         .home-screen {
+            position: relative; /* Ajouté pour positionner le sélecteur de langue */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -58,6 +57,37 @@
             padding: 20px;
         }
         
+        /* NOUVEAU: Styles pour le sélecteur de langue */
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            background-color: rgba(0,0,0,0.2);
+            padding: 8px 12px;
+            border-radius: 20px;
+        }
+
+        .lang-flag {
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0.6;
+        }
+
+        .lang-flag:hover {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+        
+        .lang-flag.selected {
+            opacity: 1;
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 4px white);
+        }
+        /* Fin des nouveaux styles */
+
         .home-screen h1 {
             font-size: 3rem;
             margin-bottom: 1rem;
@@ -153,7 +183,7 @@
             left: 50%;
             transform: translateX(-50%);
             color: white;
-            font-size: 1.6rem; /* légèrement réduit pour faire de la place */
+            font-size: 1.6rem;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
             z-index: 10;
@@ -248,17 +278,47 @@
             .countdown-display { font-size: 10rem; }
             .finger { width: 100px; height: 100px; font-size: 2rem; }
             .finger.winner { width: 150px; height: 150px; font-size: 3rem; }
+            .language-selector { gap: 10px; padding: 5px 8px; }
+            .lang-flag { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
     <div id="root"></div>
     
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react-dom.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     
     <script>
         const { useState, useEffect, useRef } = React;
+
+        // NOUVEAU: Objet contenant les traductions
+        const translations = {
+            en: {
+                title: '👆 FingerDice',
+                subtitle: 'Who will be chosen? Place your fingers to find out!',
+                label: 'Number of people to select:',
+                startButton: 'Start'
+            },
+            fr: {
+                title: '👆 FingerDice',
+                subtitle: 'Qui sera désigné ? Placez vos doigts pour le découvrir !',
+                label: 'Nombre de personnes à sélectionner :',
+                startButton: 'Commencer'
+            },
+            es: {
+                title: '👆 FingerDice',
+                subtitle: '¿Quién será elegido? ¡Coloca tus dedos para descubrirlo!',
+                label: 'Número de personas a seleccionar:',
+                startButton: 'Empezar'
+            },
+            pt: {
+                title: '👆 FingerDice',
+                subtitle: 'Quem será escolhido? Coloque seus dedos para descobrir!',
+                label: 'Número de pessoas a selecionar:',
+                startButton: 'Começar'
+            }
+        };
         
         function FingerDiceClone() {
             const [screen, setScreen] = useState('home');
@@ -267,6 +327,7 @@
             const [winners, setWinners] = useState([]);
             const [numWinners, setNumWinners] = useState(1);
             const [countdown, setCountdown] = useState(5);
+            const [language, setLanguage] = useState('en'); // NOUVEAU: État pour la langue, 'en' par défaut
             
             const touchAreaRef = useRef(null);
             const countdownTimerRef = useRef(null);
@@ -346,8 +407,7 @@
                             selectWinners(finalTouches);
                             setScreen('result');
                         } else {
-                            // S'il n'y a pas assez de doigts pour le nombre de gagnants requis, on recommence
-                            alert(`Il faut au moins ${numWinners} participant(s) !`);
+                            alert(`You need at least ${numWinners} participant(s)!`);
                             restart();
                         }
                     }
@@ -370,12 +430,12 @@
                 setFrozenTouches([]);
                 setWinners([]);
                 setCountdown(5);
-                setScreen('game'); // On retourne directement au jeu, pas à l'accueil
+                setScreen('game');
             };
             
             const backToHome = () => {
                 restart();
-                setScreen('home'); // Une fonction dédiée pour retourner à l'accueil
+                setScreen('home');
             }
 
             useEffect(() => {
@@ -385,12 +445,23 @@
             }, []);
 
             if (screen === 'home') {
+                const currentText = translations[language]; // MODIFIÉ: Sélectionne le bon objet de traduction
+                
                 return React.createElement('div', { className: 'home-screen' },
-                    React.createElement('h1', null, '👆 FingerDice'),
-                    React.createElement('p', null, 'Qui sera désigné ? Placez vos doigts pour le découvrir !'),
+                    // NOUVEAU: Sélecteur de langue
+                    React.createElement('div', { className: 'language-selector' },
+                        React.createElement('span', { className: `lang-flag ${language === 'en' ? 'selected' : ''}`, onClick: () => setLanguage('en') }, '🇬🇧'),
+                        React.createElement('span', { className: `lang-flag ${language === 'fr' ? 'selected' : ''}`, onClick: () => setLanguage('fr') }, '🇫🇷'),
+                        React.createElement('span', { className: `lang-flag ${language === 'es' ? 'selected' : ''}`, onClick: () => setLanguage('es') }, '🇪🇸'),
+                        React.createElement('span', { className: `lang-flag ${language === 'pt' ? 'selected' : ''}`, onClick: () => setLanguage('pt') }, '🇵🇹')
+                    ),
+
+                    // MODIFIÉ: Utilisation des textes dynamiques
+                    React.createElement('h1', null, currentText.title),
+                    React.createElement('p', null, currentText.subtitle),
                     
                     React.createElement('div', { className: 'winner-input-container' },
-                        React.createElement('label', null, 'Nombre de personnes à sélectionner :'),
+                        React.createElement('label', null, currentText.label),
                         
                         React.createElement('div', { className: 'winner-selector' },
                             React.createElement('button', {
@@ -405,20 +476,19 @@
                         )
                     ),
                     
-                    React.createElement('button', { className: 'btn-primary', onClick: () => setScreen('game') }, 'Commencer')
+                    React.createElement('button', { className: 'btn-primary', onClick: () => setScreen('game') }, currentText.startButton)
                 );
             }
 
             if (screen === 'game' || screen === 'countdown') {
-                // AMÉLIORATION : Message dynamique avec le nombre de participants
                 const instructionText = touches.length === 0 
-                    ? 'Posez vos doigts sur l\'écran...'
-                    : `${touches.length} participant${touches.length > 1 ? 's' : ''} détecté${touches.length > 1 ? 's' : ''}`;
+                    ? 'Place your fingers on the screen...'
+                    : `${touches.length} participant${touches.length > 1 ? 's' : ''} detected`;
 
                 return React.createElement('div', { className: 'game-screen' },
                     screen === 'countdown' && React.createElement('div', { className: 'countdown-display' }, countdown),
                     React.createElement('div', { className: 'instructions' },
-                        screen === 'countdown' ? 'Gardez vos doigts immobiles !' : instructionText
+                        screen === 'countdown' ? 'Keep your fingers still!' : instructionText
                     ),
                     React.createElement('div', { className: 'touch-area', ref: touchAreaRef },
                         touches.map((touch) =>
@@ -434,7 +504,7 @@
 
             if (screen === 'result') {
                 return React.createElement('div', { className: 'game-screen result-screen' },
-                    React.createElement('div', { className: 'instructions' }, `🎉 ${winners.length} Gagnant${winners.length > 1 ? 's' : ''} Sélectionné${winners.length > 1 ? 's' : ''} ! 🎉`),
+                    React.createElement('div', { className: 'instructions' }, `🎉 ${winners.length} Winner${winners.length > 1 ? 's' : ''} Selected! 🎉`),
                     React.createElement('div', { className: 'touch-area' },
                         frozenTouches.map((touch) => {
                             const isWinner = winners.some(winner => winner.id === touch.id);
@@ -445,7 +515,7 @@
                             }, touch.number);
                         })
                     ),
-                    React.createElement('button', { className: 'select-btn', onClick: backToHome }, '🔄 Recommencer')
+                    React.createElement('button', { className: 'select-btn', onClick: backToHome }, '🔄 Restart')
                 );
             }
             return null;
