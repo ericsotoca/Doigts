@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FingerDiceClone - Sélecteur Aléatoire Multiple</title>
+    <title>FingerDiceClone - Version Finale</title>
     
     <!--
     ╔═══════════════════════════════════════════════════════════════════════════╗
-    ║                         FINGERDICE CLONE v2.2 (UI Améliorée)                ║
-    ║        SÉLECTEUR DE PARTICIPANTS AMÉLIORÉ POUR LES ÉCRANS TACTILES          ║
+    ║                      FINGERDICE CLONE v2.3 (Version Finale)                 ║
+    ║        CORRECTIONS FINALES ET AMÉLIORATION DE L'EXPÉRIENCE UTILISATEUR      ║
     ╚═══════════════════════════════════════════════════════════════════════════╝
     
-    📋 NOUVEAUTÉ DE CETTE VERSION :
-       - Remplacement du champ de saisie numérique par des boutons "+" et "-"
-         plus grands et plus faciles à utiliser sur les appareils tactiles.
-       - L'expérience utilisateur sur l'écran d'accueil est maintenant plus fluide.
+    📋 NOUVEAUTÉS DE CETTE VERSION :
+       - Correction définitive du sélecteur de gagnants avec des boutons "+" et "-".
+       - Le code n'a aucune limite sur le nombre de doigts, il utilise le maximum
+         supporté par l'appareil.
+       - AMÉLIORATION : Ajout d'un compteur en direct qui affiche le nombre de
+         participants détectés pour un meilleur feedback.
     
     ═══════════════════════════════════════════════════════════════════════════
     -->
@@ -27,7 +29,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent; /* Supprime le flash bleu sur mobile */
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
@@ -81,7 +83,6 @@
             font-weight: bold;
         }
 
-        /* NOUVEAU : Styles pour le sélecteur avec boutons + et - */
         .winner-selector {
             display: flex;
             align-items: center;
@@ -93,7 +94,7 @@
             font-size: 3rem;
             font-weight: bold;
             color: white;
-            min-width: 80px; /* Assure un espacement constant */
+            min-width: 80px;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
         }
         
@@ -110,7 +111,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            line-height: 1; /* Centre le + et - verticalement */
+            line-height: 1;
             transition: background-color 0.2s ease;
         }
 
@@ -152,12 +153,13 @@
             left: 50%;
             transform: translateX(-50%);
             color: white;
-            font-size: 1.8rem;
+            font-size: 1.6rem; /* légèrement réduit pour faire de la place */
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
             z-index: 10;
             text-align: center;
             padding: 0 20px;
+            width: 90%;
         }
         
         .countdown-display {
@@ -240,11 +242,6 @@
             transition: all 0.3s ease;
         }
         
-        .select-btn:hover {
-            transform: translateX(-50%) translateY(-3px);
-            box-shadow: 0 6px 25px rgba(0,0,0,0.4);
-        }
-        
         @media (max-width: 768px) {
             .home-screen h1 { font-size: 2.5rem; }
             .instructions { font-size: 1.3rem; }
@@ -306,8 +303,8 @@
                 const handleTouchEnd = (e) => { e.preventDefault(); handleTouchesChange(e.touches); };
                 
                 const handleMouseDown = (e) => {
-                    const newTouch = { id: Date.now(), x: e.clientX, y: e.clientY, number: touches.length + 1 };
-                    const newTouches = [...touches, newTouch];
+                    const newTouch = { id: Date.now(), x: e.clientX, y: e.clientY, number: touchesRef.current.length + 1 };
+                    const newTouches = [...touchesRef.current, newTouch];
                     setTouches(newTouches);
                     if (!countdownTimerRef.current) {
                         startCountdown();
@@ -344,11 +341,13 @@
                         
                         const finalTouches = touchesRef.current;
 
-                        if (finalTouches.length > 0) {
+                        if (finalTouches.length >= numWinners) {
                             setFrozenTouches(finalTouches);
                             selectWinners(finalTouches);
                             setScreen('result');
                         } else {
+                            // S'il n'y a pas assez de doigts pour le nombre de gagnants requis, on recommence
+                            alert(`Il faut au moins ${numWinners} participant(s) !`);
                             restart();
                         }
                     }
@@ -371,8 +370,13 @@
                 setFrozenTouches([]);
                 setWinners([]);
                 setCountdown(5);
-                setScreen('home');
+                setScreen('game'); // On retourne directement au jeu, pas à l'accueil
             };
+            
+            const backToHome = () => {
+                restart();
+                setScreen('home'); // Une fonction dédiée pour retourner à l'accueil
+            }
 
             useEffect(() => {
                 return () => {
@@ -388,12 +392,10 @@
                     React.createElement('div', { className: 'winner-input-container' },
                         React.createElement('label', null, 'Nombre de personnes à sélectionner :'),
                         
-                        // CORRIGÉ : Remplacement de l'input par des boutons
                         React.createElement('div', { className: 'winner-selector' },
                             React.createElement('button', {
                                 className: 'selector-btn',
-                                onClick: () => setNumWinners(prev => Math.max(1, prev - 1)), // Ne descend pas en dessous de 1
-                                disabled: numWinners <= 1
+                                onClick: () => setNumWinners(prev => Math.max(1, prev - 1)),
                             }, '−'),
                             React.createElement('span', { className: 'selector-display' }, numWinners),
                             React.createElement('button', {
@@ -408,10 +410,15 @@
             }
 
             if (screen === 'game' || screen === 'countdown') {
+                // AMÉLIORATION : Message dynamique avec le nombre de participants
+                const instructionText = touches.length === 0 
+                    ? 'Posez vos doigts sur l\'écran...'
+                    : `${touches.length} participant${touches.length > 1 ? 's' : ''} détecté${touches.length > 1 ? 's' : ''}`;
+
                 return React.createElement('div', { className: 'game-screen' },
                     screen === 'countdown' && React.createElement('div', { className: 'countdown-display' }, countdown),
                     React.createElement('div', { className: 'instructions' },
-                        touches.length === 0 ? 'Posez vos doigts sur l\'écran !' : 'Gardez vos doigts immobiles !'
+                        screen === 'countdown' ? 'Gardez vos doigts immobiles !' : instructionText
                     ),
                     React.createElement('div', { className: 'touch-area', ref: touchAreaRef },
                         touches.map((touch) =>
@@ -438,7 +445,7 @@
                             }, touch.number);
                         })
                     ),
-                    React.createElement('button', { className: 'select-btn', onClick: restart }, '🔄 Recommencer')
+                    React.createElement('button', { className: 'select-btn', onClick: backToHome }, '🔄 Recommencer')
                 );
             }
             return null;
